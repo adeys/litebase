@@ -3,13 +3,18 @@ import Reference from './reference.js';
 import DataSnapshot from './snapshot.js';
 
 /**
+ * @property {Map<string, Reference>} refs
  * @private refs
  */
 class Database {
-    constructor() {
-        this.client = new WebSocketClient('ws://localhost:3000/ws/database');
+    /**
+     * @param {string} host
+     */
+    constructor(host) {
+        this.client = new WebSocketClient( `${host.replace('http', 'ws')}/ws/database`);
         this.refs = new Map();
 
+        this.client.connect();
         this._attachListeners();
     }
 
@@ -38,7 +43,7 @@ class Database {
      */
     getRef(name) {
         if (!this.refs.has(name)) {
-            this.refs.set(name, new Reference(this.client));
+            this.refs.set(name, new Reference(name, this.client));
             this.client.emit('channel:subscribe', {channel: name});
         }
 

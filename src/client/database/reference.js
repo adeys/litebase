@@ -5,15 +5,19 @@ import DataSnapshot from './snapshot.js';
 /**
  * @private _emitter
  * @private _data
+ * @private _pendingWrites
  */
 class Reference {
     /**
+     * @param {string} name
      * @param {WebSocketClient} client
      */
-    constructor(client) {
+    constructor(name, client) {
+        this.name = name;
         this.client = client;
         this._emitter = mitt();
         this._data = new Map();
+        this._pendingWrites = [];
 
         this._attachListeners();
     }
@@ -22,6 +26,15 @@ class Reference {
      * @private
      */
     _attachListeners() {
+        this.client.on('connection', () => {
+            if (this.hasPendingWrites()) {
+                while (this._pendingWrites.length) {
+                    let {action, payload} = this._pendingWrites.shift();
+                    this.client.emit(action, payload);
+                }
+            }
+        });
+
         this._emitter.on('event:insert', snapshot => {
             this._data.set(snapshot.key, snapshot.getData());
             this._emitter.emit('child_added', snapshot);
@@ -46,6 +59,7 @@ class Reference {
         }
 
         this._data.set(doc._id, doc);
+        this.sync('collection:insert', {channel: this.name, child: doc});
         return new DataSnapshot(doc._id, doc);
     }
 
@@ -55,6 +69,7 @@ class Reference {
         }
 
         let doc = this._data.get(key);
+        this.sync('collection:delete', {channel: this.name, child: doc});
         this._data.delete(key);
     }
 
@@ -63,7 +78,22 @@ class Reference {
             throw new Error(`Cannot update non existing document ${key}`);
         }
 
+        this.sync('collection:update', {channel: this.name, child: doc});
         this._data.set(key, doc);
+    }
+
+    /* Server sync */
+    sync(action, payload) {
+        if (!this.client.isConnected()) {
+            this._pendingWrites.push({action, payload});
+            return;
+        }
+
+        this.client.emit(action, payload);
+    }
+
+    hasPendingWrites() {
+        return this._pendingWrites.length !== 0;
     }
 
     /* Event handlers */
