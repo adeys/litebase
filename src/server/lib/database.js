@@ -26,14 +26,23 @@ class Database {
 
                events.forEach(event => {
                    coll.on(event, (item) => {
-                       channel.broadcast(`collection:event`, {channel: coll, action: event, child: item});
+                       channel.broadcast(`collection:event`, {channel: coll.name, event, child: item});
                    })
                });
 
                coll.on(events, () => {
-                   channel.broadcast(`collection:changed`, {channel: coll, children: coll.data});
+                   channel.broadcast(`collection:changes`, {channel: coll.name, children: coll.data});
                });
             });
+
+            let coll = this.$loki.getCollection('users');
+            setTimeout(() => {
+                let user = coll.insert({_id: Math.random().toString(16), name: 'John Doe'});
+
+                setTimeout(() => {
+                    coll.remove(user);
+                }, 5000);
+            }, 5000);
         })
     }
 

@@ -31,7 +31,7 @@ class Client extends EventEmitter {
     }
 
     trigger(action, payload) {
-        this.socket.send(JSON.stringify(JSON.stringify({action, payload})), {}, (err) => {
+        this.socket.send(JSON.stringify({action, payload}), {}, (err) => {
             if (err) console.error(`[WebSocket.emit] ${err}`);
         });
     }
