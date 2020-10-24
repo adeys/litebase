@@ -10,4 +10,4 @@ class DataSnapshot {
     }
 }
 
-module.exports = DataSnapshot;
+export default DataSnapshot;

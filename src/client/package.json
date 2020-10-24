@@ -1,0 +1,9 @@
+{
+  "name": "@litebase/client",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "mitt": "^2.1.0",
+    "nanoid": "^3.1.12"
+  }
+}

@@ -2,6 +2,20 @@
 # yarn lockfile v1
 
 
+"@litebase/client@file:src/client":
+  version "1.0.0"
+  dependencies:
+    mitt "^2.1.0"
+
+"@litebase/server@file:src/server":
+  version "1.0.0"
+  dependencies:
+    connect "^3.7.0"
+    lokijs "^1.5.11"
+    nanoid "^3.1.12"
+    path-to-regexp "^6.2.0"
+    ws "^5.2.2"
+
 "@types/connect@^3.4.33":
   version "3.4.33"
   resolved "https://registry.yarnpkg.com/@types/connect/-/connect-3.4.33.tgz#31610c901eca573b8713c3330abc6e6b9f588546"
@@ -14,15 +28,10 @@
   resolved "https://registry.yarnpkg.com/@types/lokijs/-/lokijs-1.5.3.tgz#e45db0b35e53ec09a4c2ff4f253037abd56be151"
   integrity sha512-ssiP6F7rpDqlaOzo+0Y/0dkVH2JiAjc+o7n6M4pFnfAMscf+7FthqS0cobvGJEJvxmzp4PWfMOfe0q3VETtrgQ==
 
-"@types/node@*":
+"@types/node@*", "@types/node@^14.11.6":
   version "14.14.2"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.14.2.tgz#d25295f9e4ca5989a2c610754dc02a9721235eeb"
   integrity sha512-jeYJU2kl7hL9U5xuI/BhKPZ4vqGM/OmK6whiFAXVhlstzZhVamWhDSmHyGLIp+RVyuF9/d0dqr2P85aFj4BvJg==
-
-"@types/node@^14.11.6":
-  version "14.11.6"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.11.6.tgz#a332341dc32dd896d55c6c1a64a3105701bccd67"
-  integrity sha512-1/AVlPLmRzzTDc+T28H3AaA12Be1X74mqYDaecFFCo5r5aw3Lqj+PAqAE06nefV33otTl5JLfiIp5HgRrpu4SA==
 
 async-limiter@~1.0.0:
   version "1.0.1"

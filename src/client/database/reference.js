@@ -1,6 +1,6 @@
-const mitt = require('mitt');
-const { nanoid } = require('nanoid');
-const DataSnapshot = require('./snapshot');
+import mitt from 'mitt';
+import {nanoid} from 'nanoid';
+import DataSnapshot from './snapshot.js';
 
 /**
  * @private _emitter
@@ -104,4 +104,4 @@ class Reference {
     }
 }
 
-module.exports = Reference;
+export default Reference;

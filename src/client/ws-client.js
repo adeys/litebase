@@ -1,4 +1,4 @@
-const mitt = require('mitt');
+import mitt from 'mitt';
 
 class WebSocketClient {
     constructor(url) {
@@ -52,4 +52,4 @@ class WebSocketClient {
     }
 }
 
-module.exports = WebSocketClient;
+export default WebSocketClient;

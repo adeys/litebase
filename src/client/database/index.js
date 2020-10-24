@@ -1,6 +1,6 @@
-const WebSocketClient = require('../ws-client');
-const Reference = require('./reference');
-const DataSnapshot = require('./snapshot');
+import WebSocketClient from '../ws-client.js';
+import Reference from './reference.js';
+import DataSnapshot from './snapshot.js';
 
 /**
  * @private refs
@@ -46,4 +46,4 @@ class Database {
     }
 }
 
-module.exports = Database;
+export default Database;

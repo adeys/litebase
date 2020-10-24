@@ -7,12 +7,8 @@
   "repository": "https://github.com/adeys/litebase",
   "author": "K. Raphael",
   "dependencies": {
-    "connect": "^3.7.0",
-    "lokijs": "^1.5.11",
-    "mitt": "^2.1.0",
-    "nanoid": "^3.1.12",
-    "path-to-regexp": "^6.2.0",
-    "ws": "^5.2.2"
+    "@litebase/server": "file:src/server",
+    "@litebase/client": "file:src/client"
   },
   "devDependencies": {
     "@types/connect": "^3.4.33",
