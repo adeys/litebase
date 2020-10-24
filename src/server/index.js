@@ -1,5 +1,7 @@
 const http = require('http');
 const connect = require('connect')();
+const WebSocketServer = require('./lib/ws/server');
+const Database = require('./lib/database');
 
 // Configure request handler
 // Request logger
@@ -35,4 +37,13 @@ connect.use((err, req, res, next) => {
 });
 
 const server = http.createServer(connect);
-server.listen(3000, () => console.log('Server listening on port 3000'));
+server.listen(3000, () => {
+    console.log('Server listening on port 3000');
+
+    // Start web socket server
+    const dbServer = new WebSocketServer(server, 'database');
+    dbServer.listen(() => console.log('Database real time server started'));
+
+    // Initialize database
+    const db = new Database(dbServer);
+});

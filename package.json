@@ -9,11 +9,13 @@
   "dependencies": {
     "connect": "^3.7.0",
     "lokijs": "^1.5.11",
+    "nanoid": "^3.1.12",
     "path-to-regexp": "^6.2.0",
     "ws": "^5.2.2"
   },
   "devDependencies": {
     "@types/connect": "^3.4.33",
+    "@types/lokijs": "^1.5.3",
     "@types/node": "^14.11.6"
   }
 }
