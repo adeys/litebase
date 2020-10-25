@@ -1,13 +1,19 @@
-class DataSnapshot {
+export default class DataSnapshot {
     constructor(key, value) {
         this.key = key;
-        this._value = value;
+        this.fullData = value;
+        let {meta, ...fields} = value;
+
+        this._value = {...fields};
+        this._meta = meta;
 
     }
 
     getData() {
         return this._value;
     }
-}
 
-export default DataSnapshot;
+    get meta() {
+        return this._meta;
+    }
+}

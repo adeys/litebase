@@ -82,7 +82,7 @@ class WebSocketClient {
     }
 
     isConnected() {
-        return this.socket && this.socket.readyState === WebSocket.OPEN;
+        return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
     }
 
     disconnect() {

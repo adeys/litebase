@@ -1,6 +1,6 @@
 import mitt from 'mitt';
-import {nanoid} from 'nanoid';
 import DataSnapshot from './snapshot.js';
+import Collection from './collection.js';
 
 /**
  * @private _emitter
@@ -18,7 +18,7 @@ class Reference {
         this.name = name;
         this.client = client;
         this._emitter = mitt();
-        this._data = new Map();
+        this.collection = new Collection([]);
         this._pendingWrites = [];
         this._acks = {};
         this._ids = 0;
@@ -40,53 +40,51 @@ class Reference {
         });
 
         this._emitter.on('event:insert', snapshot => {
-            this._data.set(snapshot.key, snapshot.getData());
+            this.collection.setFromSnapshot(snapshot);
             this._emitter.emit('child_added', snapshot);
         });
 
         this._emitter.on('event:update', snapshot => {
-            this._data.set(snapshot.key, snapshot.getData());
+            this.collection.setFromSnapshot(snapshot);
             this._emitter.emit('child_changed', snapshot);
         });
 
         this._emitter.on('event:delete', snapshot => {
-            this._data.delete(snapshot.key);
+            this.collection.removeByKey(snapshot.key);
             this._emitter.emit('child_removed', snapshot);
         })
     }
 
     /* Data manipulation */
-    push(doc, onComplete) {
-        doc._id = doc._id || nanoid();
-        if (this._data.has(doc._id)) {
-            throw new Error(`Cannot overwrite existing document ${doc._id} with 'push' method. Call 'update' instead.`);
-        }
+    add(doc, onComplete) {
+        let snapshot = new DataSnapshot(this.collection.insert(doc));
 
-        doc = {_id: doc._id, ...doc};
-        this._data.set(doc._id, doc);
-        this.wrapSync('collection:insert', {channel: this.name, child: doc}, onComplete);
-
-        return new DataSnapshot(doc._id, doc);
+        this.wrapSync('collection:insert', snapshot.getData(), onComplete);
+        return snapshot;
     }
 
     remove(key, onComplete) {
-        if (!this._data.has(key)) {
-            throw new Error(`Cannot delete non existing document ${key}`);
-        }
+        let snapshot = new DataSnapshot(this.collection.removeByKey(key));
 
-        let doc = this._data.get(key);
-        this._data.delete(key);
-
-        return this.wrapSync('collection:delete',  {channel: this.name, child: doc}, onComplete);
+        return this.wrapSync('collection:delete', snapshot.getData(), onComplete);
     }
 
     update(doc, onComplete) {
-        if (!doc._id || !this._data.has(doc._id)) {
-            throw new Error(`Cannot update non existing document ${doc._id}. Call 'push' instead.`);
-        }
+        let snapshot = new DataSnapshot(this.collection.update(doc));
 
-        this._data.set(doc._id, doc);
-        return this.wrapSync('collection:update', {channel: this.name, child: doc}, onComplete);
+        return this.wrapSync('collection:update', snapshot.getData(), onComplete);
+    }
+
+    query() {
+        return this.collection.chain();
+    }
+
+    get() {
+        return this.collection.find();
+    }
+
+    findOne(criteria) {
+        return this.collection.findOne(criteria);
     }
 
     /* Server sync */
@@ -153,7 +151,7 @@ class Reference {
      * @param {Array} data
      */
     setData(data) {
-        data.forEach(child => this._data.set(child._id, child));
+        this.collection.loadData(data);
     }
 
     /**
@@ -163,6 +161,8 @@ class Reference {
      * @param {function} onComplete
      */
     wrapSync(action, payload, onComplete) {
+        payload = {channel: this.name, child: payload};
+
         if (onComplete) {
             let id = `${this.name}:${this._ids}`;
             payload.id = id;

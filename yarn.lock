@@ -2,20 +2,6 @@
 # yarn lockfile v1
 
 
-"@litebase/client@file:src/client":
-  version "1.0.0"
-  dependencies:
-    mitt "^2.1.0"
-
-"@litebase/server@file:src/server":
-  version "1.0.0"
-  dependencies:
-    connect "^3.7.0"
-    lokijs "^1.5.11"
-    nanoid "^3.1.12"
-    path-to-regexp "^6.2.0"
-    ws "^5.2.2"
-
 "@types/connect@^3.4.33":
   version "3.4.33"
   resolved "https://registry.yarnpkg.com/@types/connect/-/connect-3.4.33.tgz#31610c901eca573b8713c3330abc6e6b9f588546"

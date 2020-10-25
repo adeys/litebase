@@ -90,13 +90,13 @@ class Database {
 
     /**
      * @param {{...fields, meta: Object, $loki: number}} doc
-     * @return {{meta: {created: *, idx: *}}}
+     * @return {{meta: {created: *, $key: int}}}
      * @private
      */
     _formatDoc(doc) {
         let {meta, $loki, ...fields} = doc;
 
-        return {...fields, meta: {idx: $loki, created: meta.created}};
+        return {...fields, meta: {$key: $loki, created: meta.created}};
     }
 
     /**
