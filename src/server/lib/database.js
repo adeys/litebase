@@ -43,20 +43,35 @@ class Database {
 
         events.forEach(event => {
             collection.on(event, (item) => {
-                channel.broadcast('collection:event', {channel: collection.name, event, child: item});
+                channel.broadcast('collection:event', {
+                    channel: collection.name,
+                    event, child: this._formatDoc(item)
+                });
             })
         });
 
         collection.on(events, () => {
-            channel.broadcast('collection:changes', {channel: collection.name, children: collection.data});
+            channel.broadcast('collection:changes', {
+                channel: collection.name,
+                children: collection.data.map(this._formatDoc)
+            });
         });
     }
-    
+
     /**
      * @param {Client} client
      * @private
      */
     _onClientConnection(client) {
+        client.on('channel:subscribe', ({channel: name}) => {
+            let coll = this.getCollection(name);
+            this.server.channels.get(name)
+                .broadcast('collection:changes', {
+                    channel: coll.name,
+                    children: coll.data.map(this._formatDoc)
+                });
+        });
+
         client.on('collection:insert', this._wrapAction(({channel, child}) => {
             this.getCollection(channel)
                 .insert(child);
@@ -71,6 +86,17 @@ class Database {
             this.getCollection(channel)
                 .removeWhere(item => item._id === child._id);
         }, client));
+    }
+
+    /**
+     * @param {{...fields, meta: Object, $loki: number}} doc
+     * @return {{meta: {created: *, idx: *}}}
+     * @private
+     */
+    _formatDoc(doc) {
+        let {meta, $loki, ...fields} = doc;
+
+        return {...fields, meta: {idx: $loki, created: meta.created}};
     }
 
     /**
