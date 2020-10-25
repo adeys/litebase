@@ -1,3 +1,4 @@
+const EventEmitter = require('events').EventEmitter;
 const WebSocket = require('ws');
 const { nanoid } = require('nanoid');
 const Client = require('./client');
@@ -44,12 +45,14 @@ class Channel {
  * @property {Map<string, Client>} clients
  * @property {WebSocket.Server} wss
  */
-class WebSocketServer {
+class WebSocketServer extends EventEmitter {
     /**
      * @param {Server} server
      * @param {string} resource
      */
     constructor(server, resource) {
+        super();
+
         this.server = server;
         this.res = resource;
         this.clients = new Map();
@@ -80,7 +83,9 @@ class WebSocketServer {
                 if (this.channels.has(channel)) {
                     this.channels.get(channel).removeClient(client);
                 }
-            })
+            });
+
+            this.emit('connection', client);
         });
     }
 

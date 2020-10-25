@@ -22,9 +22,9 @@ class Database {
      * @private
      */
     _attachListeners() {
-        this.client.on('collection:changes', ({channel: name, children}) => {
-            if (this.refs.has(name)) {
-                let ref = this.refs.get(name);
+        this.client.on('collection:changes', ({channel: coll, children}) => {
+            if (this.refs.has(coll)) {
+                let ref = this.refs.get(coll);
                 ref.setData(children);
                 ref.emit('value', new DataSnapshot(null, children.map(child => new DataSnapshot(child._id, child))));
             }
@@ -33,6 +33,14 @@ class Database {
         this.client.on('collection:event', ({channel: coll, event, child}) => {
             if (this.refs.has(coll)) {
                 this.refs.get(coll).emit(`event:${event}`, new DataSnapshot(child._id, child));
+            }
+        });
+
+        this.client.on('ack', ({id, success, reason}) => {
+            let coll = id.split(':')[0];
+
+            if (this.refs.has(coll)) {
+                this.refs.get(coll).onAcknowledge(id, {success, reason});
             }
         });
     }

@@ -6,6 +6,8 @@ import DataSnapshot from './snapshot.js';
  * @private _emitter
  * @private _data
  * @private _pendingWrites
+ * @private _acks
+ * @private _ids
  */
 class Reference {
     /**
@@ -18,6 +20,8 @@ class Reference {
         this._emitter = mitt();
         this._data = new Map();
         this._pendingWrites = [];
+        this._acks = {};
+        this._ids = 0;
 
         this._attachListeners();
     }
@@ -52,37 +56,56 @@ class Reference {
     }
 
     /* Data manipulation */
-    push(doc) {
+    push(doc, onComplete) {
         doc._id = doc._id || nanoid();
         if (this._data.has(doc._id)) {
             throw new Error(`Cannot overwrite existing document ${doc._id} with 'push' method. Call 'update' instead.`);
         }
 
+        doc = {_id: doc._id, ...doc};
         this._data.set(doc._id, doc);
-        this.sync('collection:insert', {channel: this.name, child: doc});
+        this.wrapSync('collection:insert', {channel: this.name, child: doc}, onComplete);
+
         return new DataSnapshot(doc._id, doc);
     }
 
-    remove(key) {
+    remove(key, onComplete) {
         if (!this._data.has(key)) {
             throw new Error(`Cannot delete non existing document ${key}`);
         }
 
         let doc = this._data.get(key);
-        this.sync('collection:delete', {channel: this.name, child: doc});
         this._data.delete(key);
+
+        return this.wrapSync('collection:delete',  {channel: this.name, child: doc}, onComplete);
     }
 
-    update(key, doc) {
-        if (!this._data.has(key)) {
-            throw new Error(`Cannot update non existing document ${key}`);
+    update(doc, onComplete) {
+        if (!doc._id || !this._data.has(doc._id)) {
+            throw new Error(`Cannot update non existing document ${doc._id}. Call 'push' instead.`);
         }
 
-        this.sync('collection:update', {channel: this.name, child: doc});
-        this._data.set(key, doc);
+        this._data.set(doc._id, doc);
+        return this.wrapSync('collection:update', {channel: this.name, child: doc}, onComplete);
     }
 
     /* Server sync */
+    onAcknowledge(idx, {success, reason}) {
+        let onComplete = this._acks[idx];
+        delete this._acks[idx];
+
+        if (onComplete && typeof onComplete === 'function') {
+            console.info('Calling ack ' + idx);
+            success ? onComplete() : onComplete(reason);
+        }
+    }
+
+    /**
+     * @private
+     *
+     * @param {string} action
+     * @param {*} payload
+     */
     sync(action, payload) {
         if (!this.client.isConnected()) {
             this._pendingWrites.push({action, payload});
@@ -131,6 +154,25 @@ class Reference {
      */
     setData(data) {
         data.forEach(child => this._data.set(child._id, child));
+    }
+
+    /**
+     * @private
+     * @param {string} action
+     * @param {Object} payload
+     * @param {function} onComplete
+     */
+    wrapSync(action, payload, onComplete) {
+        if (onComplete) {
+            let id = `${this.name}:${this._ids}`;
+            payload.id = id;
+            this._acks[id] = onComplete;
+            this._ids++;
+
+            console.info('Added ack ' + id);
+        }
+
+        this.sync(action, payload);
     }
 }
 
