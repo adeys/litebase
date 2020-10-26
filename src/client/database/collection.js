@@ -4,14 +4,24 @@ import ResultSet from "./resultSet.js";
 /**
  * @private idMap
  * @private lastKey
+ * @private _ref
  */
 export default class Collection {
-    constructor(data) {
+    /**
+     * @param {CollectionReference} ref
+     * @param {Array?} data
+     */
+    constructor(ref, data) {
         this.data = [];
         this.idMap = new Map();
         this.lastKey = 0;
 
         this.loadData(data);
+        this._ref = ref;
+    }
+
+    get ref() {
+        return this._ref;
     }
 
     loadData(data) {
@@ -155,7 +165,9 @@ export default class Collection {
      */
     setFromSnapshot(snapshot) {
         let key = snapshot.key;
-        this.idMap.has(key) ? this.update(snapshot.fullData) : this.insert(snapshot.fullData);
+        this.idMap.has(key)
+            ? this.update(snapshot.fullData)
+            : this.insert(snapshot.fullData);
     }
 }
 

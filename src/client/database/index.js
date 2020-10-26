@@ -1,9 +1,9 @@
 import WebSocketClient from '../ws-client.js';
-import Reference from './reference.js';
+import CollectionReference from './collection-reference.js';
 import DataSnapshot from './snapshot.js';
 
 /**
- * @property {Map<string, Reference>} refs
+ * @property {Map<string, CollectionReference>} refs
  * @private refs
  */
 class Database {
@@ -47,11 +47,11 @@ class Database {
 
     /**
      * @param {string} name
-     * @return {Reference}
+     * @return {CollectionReference}
      */
     getRef(name) {
         if (!this.refs.has(name)) {
-            this.refs.set(name, new Reference(name, this.client));
+            this.refs.set(name, new CollectionReference(name, this.client));
             this.client.emit('channel:subscribe', {channel: name});
         }
 

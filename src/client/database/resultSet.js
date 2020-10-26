@@ -1,4 +1,5 @@
 import {Comparators, Ops} from './comparators.js';
+import DocumentReference from "./doc-reference.js";
 
 const Utils = {
     getIn: function (object, path, usingDotNotation) {
@@ -78,7 +79,8 @@ export default class ResultSet {
         let result = [];
 
         for (let i = 0; i < len; i++) {
-            result.push({...data[fr[i]]}); // Clone record to prevent direct modification
+            // Clone record to prevent direct modification
+            result.push(new DocumentReference({...data[fr[i]]}, this.collection.ref));
         }
 
         return result;

@@ -1,6 +1,6 @@
 import mitt from 'mitt';
-import DataSnapshot from './snapshot.js';
 import Collection from './collection.js';
+import DocumentReference from "./doc-reference.js";
 
 /**
  * @private _emitter
@@ -9,7 +9,7 @@ import Collection from './collection.js';
  * @private _acks
  * @private _ids
  */
-class Reference {
+class CollectionReference {
     /**
      * @param {string} name
      * @param {WebSocketClient} client
@@ -18,7 +18,7 @@ class Reference {
         this.name = name;
         this.client = client;
         this._emitter = mitt();
-        this.collection = new Collection([]);
+        this.collection = new Collection(this, []);
         this._pendingWrites = [];
         this._acks = {};
         this._ids = 0;
@@ -57,22 +57,34 @@ class Reference {
 
     /* Data manipulation */
     add(doc, onComplete) {
-        let snapshot = new DataSnapshot(this.collection.insert(doc));
+        let ref = new DocumentReference(this.collection.insert(doc), this);
 
-        this.wrapSync('collection:insert', snapshot.getData(), onComplete);
-        return snapshot;
+        this.wrapSync('collection:insert', ref.value, onComplete);
+        return ref;
     }
 
     remove(key, onComplete) {
-        let snapshot = new DataSnapshot(this.collection.removeByKey(key));
+        let data = this.collection.removeByKey(key);
 
-        return this.wrapSync('collection:delete', snapshot.getData(), onComplete);
+        this.wrapSync('collection:delete', {_id: data._id}, onComplete);
     }
 
     update(doc, onComplete) {
-        let snapshot = new DataSnapshot(this.collection.update(doc));
+        let data = this.collection.update(doc);
+        let {meta, ...fields} = data;
 
-        return this.wrapSync('collection:update', snapshot.getData(), onComplete);
+        this.wrapSync('collection:update', {...fields}, onComplete);
+        return data;
+    }
+
+    getRef(key = null) {
+        let child;
+
+        child = !!key
+            ? this.collection.findOne({_id: key})
+            : this.collection.insert({});
+
+        return new DocumentReference(child, this);
     }
 
     query() {
@@ -94,7 +106,7 @@ class Reference {
 
         if (onComplete && typeof onComplete === 'function') {
             console.info('Calling ack ' + idx);
-            success ? onComplete() : onComplete(reason);
+            onComplete(success ? null : reason);
         }
     }
 
@@ -176,4 +188,4 @@ class Reference {
     }
 }
 
-export default Reference;
+export default CollectionReference;
