@@ -9,13 +9,20 @@ export default class DocumentReference {
      * @param {CollectionReference} parent
      */
     constructor(rawData, parent) {
+        this._init(rawData);
+        this.parent = parent;
+    }
+
+    /**
+     * @private
+     * @param rawData
+     */
+    _init(rawData) {
         let data = rawData || {};
         let {_id, meta, ...fields} = data;
         this._key = _id;
         this._meta = meta;
         this._value = rawData !== null ? {...fields} : null;
-
-        this.parent = parent;
     }
 
     get meta() {
@@ -55,5 +62,6 @@ export default class DocumentReference {
         }
 
         this.parent.remove(this._key);
+        this._init(null);
     }
 }

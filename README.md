@@ -7,9 +7,9 @@ Litebase - Lightweight real time database
 - @litebase/server - Backend.
 - @litebase/client - Frontend.
 
-Litebase was created as a lightweight self-hosted real time database to power small to medium apps during development and test stages.
+Litebase was created as a lightweight self-hosted real time and offline-first database to power small to medium apps during development and test stages.
 
-It was inspired by the Firebase Real Time API, thus it doesn't want neither to replace nor reproduce all of its functions.
+It was inspired by the Firebase Real Time and Cloud Firestore API, thus it doesn't want neither to replace nor reproduce all of its functions.
 Litebase first purpose is to provide small-sized RT Database while being efficient.
 
 ## Contributions

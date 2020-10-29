@@ -81,7 +81,7 @@ export default class Collection {
 
         let key = this.idMap.get(doc._id);
         let old = this.data[key];
-        let newChild = {...old, ...doc, meta: old.meta};
+        let newChild = {...old, ...doc, meta: {...old.meta, updated: (new Date()).getTime()}};
 
         this.data[key] = newChild;
         return newChild;
@@ -105,7 +105,7 @@ export default class Collection {
      */
     removeByKey(key) {
         if (!key || !this.idMap.has(key)) {
-            throw new Error(`Cannot delete non existing document ${key}`);
+            throw new Error(`Cannot delete non existing document ${key}.`);
         }
 
         let child = this.data[this.idMap.get(key)];
