@@ -66,7 +66,7 @@ export default class ResultSet {
         // if this has no filters applied, just return collection.data
         if (!this.isInitialized) {
             if (this.filtered.length === 0) {
-                return data.slice();
+                return data.slice().map(record => new DocumentReference(record, this.collection.ref));
             } else {
                 // filtered must have been set manually, so use it
                 this.isInitialized = true;
@@ -113,7 +113,7 @@ export default class ResultSet {
         }
 
         let length = this.filtered.length,
-            data = this.collection.data();
+            data = this.collection.data;
         for (let i = 0; i < length; i++) {
             this.collection.remove(data[this.filtered[i]]);
         }
@@ -322,17 +322,26 @@ export default class ResultSet {
     }
 
     branch() {
-        let result = new Resultset(this.collection);
+        let result = new ResultSet(this.collection);
 
         if (this.filtered.length > 0) {
-            result.filteredrows = this.filtered.slice();
+            result.filtered = this.filtered.slice();
         }
-        result.filterInitialized = this.isInitialized;
+        result.isInitialized = this.isInitialized;
 
         return result;
     }
 
     filter(filterCallback) {
+        if (!filterCallback || (typeof filterCallback !== 'function')) {
+            throw new TypeError('ResultSet.filter argument is not a function');
+        }
+
+        if (!this.isInitialized) {
+            this.isInitialized = true;
+            this.filtered = Array.from(this.collection.data.keys());
+        }
+
         this.filtered = this.filtered.filter(key => {
             let child = this.collection.data[key];
             return !!filterCallback(child);
@@ -352,6 +361,11 @@ export default class ResultSet {
 
         this.hasLimitFilter = true;
 
+        if (!this.isInitialized) {
+            this.isInitialized = true;
+            this.filtered = Array.from(this.collection.data.keys());
+        }
+
         limit = Math.floor(limit);
         this.filtered = this.filtered.slice(0, limit);
         return this;
@@ -367,7 +381,14 @@ export default class ResultSet {
         }
         this.hasLimitFilter = true;
 
+
         limit = Math.floor(limit);
+
+        if (!this.isInitialized) {
+            this.isInitialized = true;
+            this.filtered = Array.from(this.collection.data.keys());
+        }
+
         let len = this.filtered.length;
         this.filtered = this.filtered.slice(len < limit ? 0 : len - limit);
         return this;
@@ -375,14 +396,15 @@ export default class ResultSet {
 
     /**
      * @param {string} key
-     * @param {boolean} desc
+     * @param {string} order
      */
-    orderBy(key, desc = true) {
+    orderBy(key, order = 'desc') {
         if (!this.isInitialized) {
             this.isInitialized = true;
             this.filtered = Array.from(this.collection.data.keys());
         }
 
+        let desc = order.toLowerCase() === 'desc';
         // otherwise use loki sort which will return same results if column is indexed or not
         const wrappedComparer =
             (function (prop, desc, data) {

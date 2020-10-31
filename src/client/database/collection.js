@@ -125,7 +125,7 @@ export default class Collection {
 
     /**
      * @param criteria
-     * @return {Array}
+     * @return {DocumentReference[]}
      */
     find(criteria) {
         return criteria ? this.where(criteria).get() : this.get();
@@ -133,7 +133,7 @@ export default class Collection {
 
     /**
      * @param criteria
-     * @return {{_id: string, meta: {$key: int, created: number}}|null}
+     * @return {DocumentReference|null}
      */
     findOne(criteria) {
         let result = (new ResultSet(this)).where(criteria, true).get();

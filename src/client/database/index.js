@@ -14,6 +14,10 @@ class Database {
         this.client = new WebSocketClient( `${host.replace('http', 'ws')}/ws/database`);
         this.refs = new Map();
 
+        this.connect();
+    }
+
+    connect() {
         this.client.connect();
         this._attachListeners();
     }

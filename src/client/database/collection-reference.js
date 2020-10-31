@@ -82,19 +82,20 @@ class CollectionReference {
     }
 
     /**
-     * @param {string} key
+     * @param {string|null} key
+     * @param {boolean} createIfNotExists
      * @return {DocumentReference}
      */
-    getRef(key = null) {
+    getRef(key = null, createIfNotExists = true) {
         let child = this.collection.findOne({_id: key});
 
-        if (!child) {
+        if (!key || (!child && createIfNotExists)) {
             let body = {};
             !!key ? body._id = key : null;
-            child = this.collection.insert(body);
+            child = new DocumentReference(this.collection.insert(body), this);
         }
 
-        return new DocumentReference(child, this);
+        return child === null ? new DocumentReference(null, this) : child;
     }
 
     query() {
@@ -190,8 +191,6 @@ class CollectionReference {
             payload.id = id;
             this._acks[id] = onComplete;
             this._ids++;
-
-            console.info('Added ack ' + id);
         }
 
         this.sync(action, payload);
