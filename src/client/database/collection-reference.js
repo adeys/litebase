@@ -56,7 +56,12 @@ class CollectionReference {
     }
 
     /* Data manipulation */
-    add(doc, onComplete) {
+    /**
+     * @param {*} doc
+     * @param {Function} onComplete
+     * @return {DocumentReference}
+     */
+    add(doc, onComplete = null) {
         let ref = new DocumentReference(this.collection.insert(doc), this);
 
         this.wrapSync('collection:insert', ref.value, onComplete);
@@ -74,15 +79,20 @@ class CollectionReference {
         let {meta, ...fields} = data;
 
         this.wrapSync('collection:update', {...fields}, onComplete);
-        return data;
     }
 
+    /**
+     * @param {string} key
+     * @return {DocumentReference}
+     */
     getRef(key = null) {
-        let child;
+        let child = this.collection.findOne({_id: key});
 
-        child = !!key
-            ? this.collection.findOne({_id: key})
-            : this.collection.insert({});
+        if (!child) {
+            let body = {};
+            !!key ? body._id = key : null;
+            child = this.collection.insert(body);
+        }
 
         return new DocumentReference(child, this);
     }

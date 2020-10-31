@@ -1,3 +1,5 @@
+import Deferred from '../utils.js';
+
 /**
  * @private _key
  * @private _meta
@@ -46,22 +48,38 @@ export default class DocumentReference {
     }
 
     // Data management
-    set(fields, overwrite = false) {
+    /**
+     * @param {*} fields
+     * @param {boolean} merge
+     * @return {Promise<void>}
+     */
+    set(fields, merge = true) {
         if (!this.exists) {
             throw new Error('Cannot perform write operations on non existing document reference');
         }
 
-        this._value = overwrite ? fields : Object.assign(this._value, fields);
+        this._value = !merge ? fields : Object.assign(this._value, fields);
 
-        this.parent.update(this.value);
+        let deferred = new Deferred();
+        let callback = deferred.wrapCallback(() => {});
+        this.parent.update(this.value, callback);
+
+        return deferred.promise;
     }
-
+    /**
+     * @return {Promise<void>}
+     */
     delete() {
         if (!this.exists) {
             throw new Error('Cannot perform delete operations on non existing document reference');
         }
 
-        this.parent.remove(this._key);
+        let deferred = new Deferred();
+        let callback = deferred.wrapCallback(() => {});
+
+        this.parent.remove(this._key, callback);
         this._init(null);
+
+        return deferred.promise;
     }
 }
